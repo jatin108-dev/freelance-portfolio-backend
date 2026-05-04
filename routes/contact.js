@@ -3,9 +3,10 @@ const router = express.Router();
 const nodemailer = require("nodemailer");
 
 router.post("/", async (req, res) => {
-  const { name, email, message } = req.body;
-
   try {
+    const { name, email, message } = req.body;
+
+    // transporter
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
@@ -14,24 +15,23 @@ router.post("/", async (req, res) => {
       },
     });
 
+    // mail content
     const mailOptions = {
-      from: email,
-      to: process.env.EMAIL, // 👉 tujhe yaha mail milega
-      subject: "New Contact Message",
-      html: `
-        <h3>New Message from Portfolio</h3>
-        <p><b>Name:</b> ${name}</p>
-        <p><b>Email:</b> ${email}</p>
-        <p><b>Message:</b> ${message}</p>
+      from: process.env.EMAIL,
+      to: process.env.EMAIL,
+      subject: "New Contact Message ",
+      text: `
+Name: ${name}
+Email: ${email}
+Message: ${message}
       `,
     };
 
     await transporter.sendMail(mailOptions);
 
-    res.json({ message: "Email sent successfully" });
-
-  } catch (err) {
-    console.log(err);
+    res.status(200).json({ success: true });
+  } catch (error) {
+    console.error("MAIL ERROR:", error);
     res.status(500).json({ error: "Email failed" });
   }
 });
