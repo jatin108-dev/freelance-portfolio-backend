@@ -6,6 +6,8 @@ router.post("/", async (req, res) => {
   try {
     const { name, email, message } = req.body;
 
+    console.log("Request received:", name, email);
+
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
@@ -14,29 +16,23 @@ router.post("/", async (req, res) => {
       },
     });
 
-    // 🔥 verify first
-    await transporter.verify();
-
+    // 🔥 remove verify (it causes hang sometimes)
     const mailOptions = {
       from: process.env.EMAIL,
       to: process.env.EMAIL,
-      subject: "New Contact Message 🚀",
+      subject: "New Contact Message",
       text: `Name: ${name}\nEmail: ${email}\nMessage: ${message}`,
     };
 
-    // 🔥 timeout fix
-    const send = transporter.sendMail(mailOptions);
-    const timeout = new Promise((_, reject) =>
-      setTimeout(() => reject(new Error("Timeout")), 8000)
-    );
+    await transporter.sendMail(mailOptions);
 
-    await Promise.race([send, timeout]);
+    console.log("Mail sent successfully");
 
     return res.status(200).json({ success: true });
 
   } catch (err) {
-    console.error("MAIL ERROR:", err.message);
-    return res.status(500).json({ error: err.message });
+    console.error("MAIL ERROR:", err);
+    return res.status(500).json({ error: "Mail failed" });
   }
 });
 
