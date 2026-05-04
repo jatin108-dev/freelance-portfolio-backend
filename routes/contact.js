@@ -6,7 +6,6 @@ router.post("/", async (req, res) => {
   try {
     const { name, email, message } = req.body;
 
-    // transporter
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
@@ -15,24 +14,29 @@ router.post("/", async (req, res) => {
       },
     });
 
-    // mail content
+    // 🔥 verify first
+    await transporter.verify();
+
     const mailOptions = {
       from: process.env.EMAIL,
       to: process.env.EMAIL,
-      subject: "New Contact Message ",
-      text: `
-Name: ${name}
-Email: ${email}
-Message: ${message}
-      `,
+      subject: "New Contact Message 🚀",
+      text: `Name: ${name}\nEmail: ${email}\nMessage: ${message}`,
     };
 
-    await transporter.sendMail(mailOptions);
+    // 🔥 timeout fix
+    const send = transporter.sendMail(mailOptions);
+    const timeout = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error("Timeout")), 8000)
+    );
 
-    res.status(200).json({ success: true });
-  } catch (error) {
-    console.error("MAIL ERROR:", error);
-    res.status(500).json({ error: "Email failed" });
+    await Promise.race([send, timeout]);
+
+    return res.status(200).json({ success: true });
+
+  } catch (err) {
+    console.error("MAIL ERROR:", err.message);
+    return res.status(500).json({ error: err.message });
   }
 });
 
