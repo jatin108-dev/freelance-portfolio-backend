@@ -8,23 +8,38 @@ const reviewRoute = require("./routes/reviews");
 
 const app = express();
 
-// ✅ CORS FIX
+/* ===================== CORS (FINAL) ===================== */
+// apni Vercel URL yahan rakho (NO trailing slash)
+const allowedOrigin = "https://freelance-portfolio-khaki-omega.vercel.app";
+
 app.use(cors({
-  origin: "https://freelance-portfolio-khaki-omega.vercel.app"
+  origin: allowedOrigin,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  credentials: true,
 }));
 
+//  preflight (OPTIONS) handle
+app.options("*", cors({ origin: allowedOrigin }));
+
+/* ===================== MIDDLEWARE ===================== */
 app.use(express.json());
 
-// ✅ DB CONNECT
+/* ===================== DB CONNECT ===================== */
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log("Mongo Connected"))
-  .catch(err => console.log(err));
+  .catch(err => console.error("Mongo Error:", err));
 
-// ✅ ROUTES
+/* ===================== HEALTH ROUTE ===================== */
+app.get("/", (req, res) => {
+  res.send("API running 🚀");
+});
+
+/* ===================== ROUTES ===================== */
 app.use("/api/contact", contactRoute);
 app.use("/api/reviews", reviewRoute);
 
-// ✅ PORT FIX (CRITICAL)
-app.listen(process.env.PORT || 5000, () => {
-  console.log("Server running");
+/* ===================== PORT ===================== */
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+  console.log(`Server running on ${PORT}`);
 });
