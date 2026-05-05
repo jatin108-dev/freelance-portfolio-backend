@@ -1,13 +1,23 @@
 const express = require("express");
 const router = express.Router();
+const Contact = require("../models/Contacts");
 const nodemailer = require("nodemailer");
 
 router.post("/", async (req, res) => {
   try {
     const { name, email, message } = req.body;
 
-    console.log("Request received:", name, email);
+    // 🔹 1. Save to DB
+    const newContact = new Contact({
+      name,
+      email,
+      message,
+    });
 
+    await newContact.save();
+    console.log("Saved to DB");
+
+    // 🔹 2. Send Mail
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
@@ -16,23 +26,26 @@ router.post("/", async (req, res) => {
       },
     });
 
-    // 🔥 remove verify (it causes hang sometimes)
     const mailOptions = {
       from: process.env.EMAIL,
       to: process.env.EMAIL,
-      subject: "New Contact Message",
-      text: `Name: ${name}\nEmail: ${email}\nMessage: ${message}`,
+      subject: "New Contact Message 🚀",
+      text: `
+Name: ${name}
+Email: ${email}
+Message: ${message}
+      `,
     };
 
     await transporter.sendMail(mailOptions);
+    console.log("Mail sent");
 
-    console.log("Mail sent successfully");
-
-    return res.status(200).json({ success: true });
+    // 🔹 3. Response
+    res.status(200).json({ success: true });
 
   } catch (err) {
-    console.error("MAIL ERROR:", err);
-    return res.status(500).json({ error: "Mail failed" });
+    console.error("ERROR:", err);
+    res.status(500).json({ error: "Something went wrong" });
   }
 });
 
