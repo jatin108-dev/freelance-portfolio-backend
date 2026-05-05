@@ -1,3 +1,5 @@
+// models/Contact.js  ← rename file (recommended)
+
 const mongoose = require("mongoose");
 
 const contactSchema = new mongoose.Schema({
@@ -15,4 +17,4 @@ const contactSchema = new mongoose.Schema({
   },
 }, { timestamps: true });
 
-module.exports = mongoose.model("Contacts", contactSchema);
+module.exports = mongoose.model("Contact", contactSchema);
